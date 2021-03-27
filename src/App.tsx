@@ -11,7 +11,9 @@ import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
+import * as yup from "yup";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -36,15 +38,32 @@ const useStyles = makeStyles((theme) => ({
 type Profile = {
   email: string;
   password: string;
-  remember: string;
+  remember: boolean;
 };
+
+const schema = yup.object().shape({
+  email: yup
+    .string()
+    .email("Email should have correct format")
+    .required("Email is a required field"),
+  password: yup.string().required("Password is a required field"),
+});
 
 function App() {
   const classes = useStyles();
-  const { register, handleSubmit, errors } = useForm<Profile>();
+  const { register, handleSubmit, errors, reset } = useForm<Profile>({
+    defaultValues: {
+      email: "",
+      password: "",
+      remember: false,
+    },
+    mode: "onBlur",
+    resolver: yupResolver(schema),
+  });
 
   const onSubmit = handleSubmit((data) => {
     alert(JSON.stringify(data));
+    reset();
   });
 
   return (
@@ -69,7 +88,7 @@ function App() {
             autoComplete="email"
             autoFocus
             error={!!errors.email}
-            helperText="Must provide email"
+            helperText={errors.email?.message}
           />
           <TextField
             variant="outlined"
@@ -82,7 +101,7 @@ function App() {
             id="password"
             autoComplete="current-password"
             error={!!errors.password}
-            helperText="Must provide password"
+            helperText={errors.password?.message}
           />
           <FormControlLabel
             control={
